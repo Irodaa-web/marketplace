@@ -3,6 +3,7 @@ const assert = require('node:assert');
 const fs = require('node:fs');
 const path = require('node:path');
 const os = require('node:os');
+process.env.DEMO = '0';
 process.env.DB_FILE = path.join(fs.mkdtempSync(path.join(os.tmpdir(), 'mp-')), 't.db');
 const { server } = require('./server');
 

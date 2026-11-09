@@ -61,3 +61,18 @@ td.row > * { margin: 2px; }
   #nav a { white-space: nowrap; }
   #account { margin-left: auto; }
 }
+/* Demo */
+.demobar { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; padding: 8px 20px; background: var(--surface); border-bottom: 1px dashed var(--line); }
+.demo-label { font-size: 11px; font-weight: 700; letter-spacing: .08em; padding: 2px 8px; border-radius: 6px; background: var(--warn); color: #fff; }
+.demo-panel { max-width: 1000px; margin: 8px auto 0; }
+.demo-panel h2 { text-align: center; margin-top: 8px; }
+.demo-panel > p { text-align: center; }
+.demo-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 14px; }
+.demo-card { display: flex; flex-direction: column; gap: 6px; border-top: 4px solid var(--accent); }
+.demo-card h3 { margin: 0; font-size: 17px; }
+.demo-card p { margin: 0; flex: 1; }
+.demo-card button { margin-top: 8px; }
+.demo-icon { font-size: 30px; }
+.demo-admin { border-top-color: #7c3aed; } .demo-seller { border-top-color: #0891b2; }
+.demo-courier { border-top-color: var(--warn); } .demo-user { border-top-color: var(--ok); }
+.demobar[hidden] { display: none; }

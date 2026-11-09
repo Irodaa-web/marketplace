@@ -7,6 +7,8 @@ const STATUS = { new: 'Yangi', ready: 'Kuryer qidirilmoqda', accepted: 'Kuryer y
 const badge = (s) => `<span class="badge s-${s}">${STATUS[s] || s}</span>`;
 
 let me = null;
+let demo = null; // { enabled, accounts, password }
+const ROLE_ICONS = { admin: '👑', seller: '🏪', courier: '🚚', user: '🛒' };
 const store = {
   get token() { try { return localStorage.getItem('mp_token'); } catch { return null; } },
   set token(v) { try { v ? localStorage.setItem('mp_token', v) : localStorage.removeItem('mp_token'); } catch {} },
@@ -59,11 +61,29 @@ function renderHeader() {
     ? `<span>${esc(me.name)} · <b>${ROLE_NAMES[me.role]}</b></span><button class="small" onclick="logout()">Chiqish</button>`
     : '';
 }
+// Demo: bir bosishda kerakli rolga kirish
+window.demoLogin = async (role) => {
+  try {
+    const r = await api('/demo/login', { method: 'POST', body: { role } });
+    store.token = r.token; me = r.user;
+    toast(`${ROLE_NAMES[role]} sifatida kirdingiz`);
+    go(HOME[me.role]);
+  } catch (e) { toast(e.message, true); }
+};
+function renderDemoBar() {
+  const bar = document.getElementById('demobar');
+  if (!demo?.enabled || !me) { bar.hidden = true; return; }
+  bar.hidden = false;
+  bar.innerHTML = `<span class="demo-label">DEMO</span><span class="muted">Rolni almashtirish:</span>
+    ${demo.accounts.map((a) => `<button class="small ${me.phone === a.phone ? 'primary' : ''}" onclick="demoLogin('${a.role}')">${ROLE_ICONS[a.role]} ${ROLE_NAMES[a.role]}</button>`).join('')}`;
+}
+
 // Hash o'zgarsa hashchange chizadi, o'zgarmasa o'zimiz chizamiz (ikki marta chizilmasin)
 function go(hash) { if (location.hash === hash) render(); else location.hash = hash; }
 window.logout = () => { store.token = null; me = null; go('#/login'); };
 
 async function render() {
+  if (!demo) { try { demo = await api('/demo'); } catch { demo = { enabled: false, accounts: [] }; } }
   if (store.token && !me) { try { me = await api('/me'); } catch { me = null; } }
   // Rol admin tomonidan o'zgargan bo'lishi mumkin — har safar yangilaymiz
   else if (me) { try { me = await api('/me'); } catch { me = null; } }
@@ -71,6 +91,7 @@ async function render() {
   if (!me) hash = '#/login';
   else if (hash === '#/login') { location.hash = HOME[me.role]; return; }
   renderHeader();
+  renderDemoBar();
   const page = PAGES[hash.split('?')[0]] || PAGES['#/'];
   const allowed = page.roles ? page.roles.includes(me?.role) : true;
   if (!allowed) { location.hash = HOME[me.role]; return; }
@@ -97,7 +118,19 @@ PAGES['#/login'] = { render() {
           <button class="primary">${mode === 'login' ? 'Kirish' : "Ro'yxatdan o'tish"}</button>
         </form>
         ${mode === 'register' ? '<p class="muted">Ro\'yxatdan o\'tgach siz xaridor bo\'lasiz. Sotuvchi yoki kuryer rolini admin beradi.</p>' : ''}
-      </div>`;
+      </div>
+      ${demo?.enabled ? `<section class="demo-panel">
+        <h2>Demo panellar</h2>
+        <p class="muted">Har bir rolni sinab ko'rish uchun bir bosishda kiring. Barcha demo akkauntlar paroli: <b>${esc(demo.password)}</b></p>
+        <div class="demo-grid">${demo.accounts.map((a) => `
+          <div class="card demo-card demo-${a.role}">
+            <div class="demo-icon">${ROLE_ICONS[a.role]}</div>
+            <h3>${ROLE_NAMES[a.role]}</h3>
+            <p class="muted">${esc(a.about)}</p>
+            <div class="muted">${esc(a.name)} · ${esc(a.phone)}</div>
+            <button class="primary" onclick="demoLogin('${a.role}')">${ROLE_NAMES[a.role]} sifatida kirish</button>
+          </div>`).join('')}</div>
+      </section>` : ''}`;
     document.getElementById('t-login').onclick = () => { mode = 'login'; draw(); };
     document.getElementById('t-reg').onclick = () => { mode = 'register'; draw(); };
     document.getElementById('f').onsubmit = async (e) => {

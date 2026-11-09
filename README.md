@@ -16,6 +16,21 @@ npm test           # asosiy oqim testi
 Birinchi ishga tushganda admin yaratiladi: **+998 90 000 00 00 / admin123**
 (`ADMIN_PHONE`, `ADMIN_PASSWORD` orqali o'zgartirish mumkin). Boshqa sozlamalar: `PORT`, `SECRET`, `DB_FILE`.
 
+## Demo panellar
+
+Kirish sahifasida har bir rol uchun karta bor: **Admin, Sotuvchi, Kuryer, Xaridor**. Bitta tugmani bossangiz,
+o'sha rol sifatida tizimga kirasiz. Kirgandan keyin tepadagi **DEMO** panelidan rolni istalgan payt almashtirish mumkin.
+Namunaviy mahsulotlar va turli holatdagi buyurtmalar o'zi qo'shiladi.
+
+| Rol | Telefon | Parol |
+|---|---|---|
+| Admin | +998 90 000 00 01 | demo123 |
+| Sotuvchi | +998 90 111 11 11 | demo123 |
+| Kuryer | +998 90 222 22 22 | demo123 |
+| Xaridor | +998 90 333 33 33 | demo123 |
+
+Haqiqiy foydalanishda demoni o'chiring: `DEMO=0 npm start` (Windows: `set DEMO=0 && npm start`).
+
 ## Rollar
 
 | Rol | Imkoniyatlar |
@@ -42,4 +57,5 @@ Savatda bir nechta sotuvchining mahsuloti bo'lsa, har bir sotuvchiga alohida buy
 server.js        API + statik fayllar + SQLite sxemasi
 public/          interfeys (index.html, app.js, style.css)
 test.js          API orqali to'liq oqim testi
+test-demo.js     demo panellar testi
 ```

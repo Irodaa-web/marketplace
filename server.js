@@ -11,6 +11,8 @@ const SECRET = process.env.SECRET || 'marketplace-dev-secret';
 const DB_FILE = process.env.DB_FILE || path.join(__dirname, 'marketplace.db');
 const ADMIN_PHONE = process.env.ADMIN_PHONE || '+998900000000';
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'admin123';
+// Demo rejim: har bir rol uchun tayyor akkaunt va namunaviy ma'lumotlar. O'chirish: DEMO=0
+const DEMO = process.env.DEMO !== '0';
 
 const ROLES = ['admin', 'seller', 'courier', 'user'];
 
@@ -425,6 +427,65 @@ route('DELETE', '/api/admin/orders/:id', async ({ user, params }) => {
   return { deleted: true };
 });
 
+// ---------- Demo ----------
+const DEMO_PASSWORD = 'demo123';
+const DEMO_ACCOUNTS = [
+  { role: 'admin', name: 'Demo Admin', phone: '+998900000001', about: "Foydalanuvchilar, rollar, barcha mahsulot va buyurtmalarni boshqaradi" },
+  { role: 'seller', name: 'Ali Savdo', phone: '+998901111111', about: "O'z mahsulotlarini qo'shadi va buyurtmalar uchun kuryer topadi" },
+  { role: 'courier', name: 'Vali Kuryer', phone: '+998902222222', about: 'Barcha sotuvchilardan zakaz oladi yoki bekor qiladi' },
+  { role: 'user', name: 'Gulnora', phone: '+998903333333', about: "Mahsulotlarni ko'radi va buyurtma beradi" },
+];
+function seedDemo() {
+  const ids = {};
+  for (const a of DEMO_ACCOUNTS) {
+    const u = db.prepare('SELECT id FROM users WHERE phone = ?').get(a.phone);
+    ids[a.role] = u ? u.id : Number(db.prepare('INSERT INTO users (name, phone, password, role) VALUES (?, ?, ?, ?)')
+      .run(a.name, a.phone, hashPassword(DEMO_PASSWORD), a.role).lastInsertRowid);
+  }
+  // Mahsulot va buyurtmalar faqat bir marta qo'shiladi
+  const malika = db.prepare('SELECT id FROM users WHERE phone = ?').get('+998904444444');
+  if (malika) return;
+  const malikaId = Number(db.prepare("INSERT INTO users (name, phone, password, role) VALUES ('Malika Shop', '+998904444444', ?, 'seller')")
+    .run(hashPassword(DEMO_PASSWORD)).lastInsertRowid);
+  const add = (seller, name, description, price, stock) => Number(db.prepare(
+    'INSERT INTO products (seller_id, name, description, price, stock) VALUES (?, ?, ?, ?, ?)').run(seller, name, description, price, stock).lastInsertRowid);
+  const p = {
+    olma: add(ids.seller, 'Olma (1 kg)', "Namangan olmasi, yangi uzilgan", 14000, 50),
+    non: add(ids.seller, 'Tandir non', 'Issiq, har kuni ertalab', 5000, 100),
+    asal: add(ids.seller, 'Tog\' asali (0.5 kg)', 'Tabiiy, sertifikatlangan', 65000, 12),
+    choynak: add(malikaId, 'Chinni choynak', "Paxta gulli an'anaviy naqsh", 85000, 8),
+    sumka: add(malikaId, "Charm sumka", "Qo'lda tikilgan, jigarrang", 240000, 5),
+    ruchka: add(malikaId, 'Ruchka (10 dona)', "Ko'k siyohli", 12000, 200),
+  };
+  const order = (seller, status, address, items, courier = null) => {
+    const total = items.reduce((s, [id, q]) => s + db.prepare('SELECT price FROM products WHERE id = ?').get(id).price * q, 0);
+    const oid = db.prepare('INSERT INTO orders (buyer_id, seller_id, courier_id, address, total, status) VALUES (?, ?, ?, ?, ?, ?)')
+      .run(ids.user, seller, courier, address, total, status).lastInsertRowid;
+    for (const [id, q] of items) {
+      const pr = db.prepare('SELECT * FROM products WHERE id = ?').get(id);
+      db.prepare('INSERT INTO order_items (order_id, product_id, name, price, qty) VALUES (?, ?, ?, ?, ?)').run(oid, id, pr.name, pr.price, q);
+    }
+  };
+  order(ids.seller, 'new', 'Toshkent, Chilonzor 9-kvartal, 12-uy', [[p.olma, 2], [p.non, 4]]);
+  order(malikaId, 'ready', 'Toshkent, Yunusobod 4, 25-uy', [[p.choynak, 1]]);
+  order(ids.seller, 'ready', 'Toshkent, Mirzo Ulug\'bek, Buyuk Ipak yo\'li 81', [[p.asal, 1]]);
+  order(malikaId, 'accepted', 'Toshkent, Sergeli 7, 3-uy', [[p.ruchka, 3]], ids.courier);
+  order(ids.seller, 'delivered', 'Toshkent, Olmazor, Talabalar shaharchasi', [[p.non, 2]], ids.courier);
+  console.log(`Demo ma'lumotlar qo'shildi (parol: ${DEMO_PASSWORD})`);
+}
+route('GET', '/api/demo', async () => ({
+  enabled: DEMO,
+  accounts: DEMO ? DEMO_ACCOUNTS.map(({ role, name, phone, about }) => ({ role, name, phone, about })) : [],
+  password: DEMO ? DEMO_PASSWORD : null,
+}));
+// Bir bosishda demo akkauntga kirish
+route('POST', '/api/demo/login', async ({ body }) => {
+  if (!DEMO) fail(404, "Demo rejim o'chirilgan");
+  const a = DEMO_ACCOUNTS.find((x) => x.role === body.role) || fail(400, "Rol noto'g'ri");
+  const user = db.prepare('SELECT * FROM users WHERE phone = ?').get(a.phone) || fail(404, 'Demo akkaunt topilmadi');
+  return { token: sign({ id: user.id, exp: Date.now() + 864e5 }), user: publicUser(user) };
+});
+
 // ---------- Server ----------
 const PUBLIC = path.join(__dirname, 'public');
 const MIME = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript', '.css': 'text/css', '.svg': 'image/svg+xml' };
@@ -467,6 +528,8 @@ if (!db.prepare("SELECT 1 FROM users WHERE role = 'admin'").get()) {
   else db.prepare("INSERT INTO users (name, phone, password, role) VALUES ('Admin', ?, ?, 'admin')").run(adminPhone, hashPassword(ADMIN_PASSWORD));
   console.log(`Admin yaratildi: ${adminPhone} / ${ADMIN_PASSWORD}`);
 }
+
+if (DEMO) seedDemo();
 
 if (require.main === module) {
   server.listen(PORT, () => console.log(`Marketplace: http://localhost:${PORT}`));
