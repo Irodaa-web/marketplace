@@ -1,0 +1,42 @@
+/* Admin va sotuvchi panellari: chap menyu + ish maydoni */
+.layout { display: grid; grid-template-columns: 252px minmax(0, 1fr); min-height: 100vh; }
+.sidebar { position: sticky; top: 0; height: 100vh; display: flex; flex-direction: column; padding: 20px 14px; gap: 6px;
+  background: var(--side-bg); color: var(--side-text); border-right: 1px solid var(--side-line); }
+.brand { display: flex; align-items: center; gap: 10px; padding: 4px 10px 18px; font-weight: 700; font-size: 17px; color: var(--side-strong); }
+.brand .logo { width: 34px; height: 34px; border-radius: 10px; display: grid; place-items: center; background: var(--accent); color: #fff; font-size: 17px; }
+.brand small { display: block; font-size: 12px; font-weight: 500; color: var(--side-text); }
+.side-nav { display: flex; flex-direction: column; gap: 2px; }
+.side-nav a { display: flex; align-items: center; gap: 12px; padding: 10px 12px; border-radius: 10px; color: var(--side-text); font-weight: 500; }
+.side-nav a:hover { background: var(--side-hover); color: var(--side-strong); }
+.side-nav a.active { background: var(--side-active); color: var(--side-strong); }
+.side-nav a .i { width: 20px; text-align: center; }
+.side-nav a .n { margin-left: auto; font-size: 12px; font-weight: 700; padding: 1px 8px; border-radius: 99px; background: var(--accent); color: #fff; }
+.side-foot { margin-top: auto; display: flex; align-items: center; gap: 10px; padding: 12px 10px 0; border-top: 1px solid var(--side-line); }
+.side-foot .who { flex: 1; min-width: 0; font-size: 13px; }
+.side-foot .who span { display: block; white-space: nowrap; }
+.side-foot .who b { display: block; color: var(--side-strong); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.side-foot .icon-btn { color: var(--side-text); display: grid; place-items: center; }
+.side-foot .icon-btn:hover { background: var(--side-hover); color: var(--side-strong); }
+
+.main { min-width: 0; padding: 28px 32px 60px; }
+.page-head { display: flex; justify-content: space-between; align-items: flex-end; gap: 16px; flex-wrap: wrap; margin-bottom: 22px; }
+.page-head p { margin: 4px 0 0; color: var(--muted); }
+.toolbar { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; margin-bottom: 16px; }
+.toolbar input, .toolbar select { width: auto; min-width: 200px; }
+.section-title { display: flex; justify-content: space-between; align-items: center; margin: 28px 0 12px; }
+
+@media (max-width: 860px) {
+  .layout { grid-template-columns: minmax(0, 1fr); }
+  .stats { grid-template-columns: 1fr 1fr; gap: 10px; }
+  .stat { padding: 14px; flex-direction: column; align-items: flex-start; gap: 10px; }
+  .sidebar { position: sticky; z-index: 10; height: auto; flex-direction: row; align-items: center; padding: 10px 12px; gap: 8px; overflow-x: auto; }
+  .brand { padding: 0; } .brand small, .brand span { display: none; }
+  .side-nav { flex-direction: row; }
+  .side-nav a { padding: 8px 10px; white-space: nowrap; }
+  .side-nav a .t { display: none; }
+  .side-nav a.active .t { display: inline; }
+  .side-foot { margin: 0 0 0 auto; border: 0; padding: 0; }
+  .side-foot .avatar, .side-foot .who { display: none; }
+  .main { padding: 20px 16px 48px; }
+  .toolbar input, .toolbar select { min-width: 0; flex: 1; }
+}

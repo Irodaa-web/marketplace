@@ -16,10 +16,25 @@ npm test           # asosiy oqim testi
 Birinchi ishga tushganda admin yaratiladi: **+998 90 000 00 00 / admin123**
 (`ADMIN_PHONE`, `ADMIN_PASSWORD` orqali o'zgartirish mumkin). Boshqa sozlamalar: `PORT`, `SECRET`, `DB_FILE`.
 
-## Demo panellar
+## Panellar
 
-Kirish sahifasida har bir rol uchun karta bor: **Admin, Sotuvchi, Kuryer, Xaridor**. Bitta tugmani bossangiz,
-o'sha rol sifatida tizimga kirasiz. Kirgandan keyin tepadagi **DEMO** panelidan rolni istalgan payt almashtirish mumkin.
+Har bir rolning o'z sahifasi va o'z dizayni bor:
+
+| Sahifa | Kim uchun |
+|---|---|
+| `/` | Kirish, ro'yxatdan o'tish va tayyor demo kirishlar |
+| `/admin.html` | 👑 Admin paneli — boshqaruv, foydalanuvchilar va rollar, mahsulotlar, buyurtmalar |
+| `/seller.html` | 🏪 Sotuvchi paneli — bosh sahifa, mahsulotlar CRUD, buyurtmalar va "Kuryer topish" |
+| `/courier.html` | 🚚 Kuryer ilovasi (telefon uchun) — yangi zakazlar, faol, tarix |
+| `/shop.html` | 🛒 Xaridor do'koni — katalog, savat, buyurtmalar va ularning holati |
+
+Har bir rol o'z sessiyasini alohida saqlaydi. Shuning uchun to'rtta panelni to'rt xil oynada
+bir vaqtda ochib, buyurtmaning yo'lini kuzatish mumkin: xaridor buyurtma beradi → sotuvchi kuryer topadi →
+kuryer qabul qiladi. Admin kimningdir rolini o'zgartirsa, o'sha odam keyingi safar avtomatik yangi paneliga o'tadi.
+
+### Demo kirishlar
+
+Kirish sahifasida har bir rol uchun tayyor demo karta bor: **Kirish** yoki **↗ Yangi oyna**.
 Namunaviy mahsulotlar va turli holatdagi buyurtmalar o'zi qo'shiladi.
 
 | Rol | Telefon | Parol |
@@ -54,8 +69,12 @@ Savatda bir nechta sotuvchining mahsuloti bo'lsa, har bir sotuvchiga alohida buy
 ## Tuzilma
 
 ```
-server.js        API + statik fayllar + SQLite sxemasi
-public/          interfeys (index.html, app.js, style.css)
+server.js        API + statik fayllar + SQLite sxemasi + demo ma'lumotlar
+public/
+  index.html     kirish sahifasi
+  admin.html, seller.html, courier.html, shop.html   rollar panellari
+  css/           base.css (umumiy dizayn), panel.css (chap menyuli panellar)
+  js/            core.js (umumiy), admin.js, seller.js, shop.js
 test.js          API orqali to'liq oqim testi
 test-demo.js     demo panellar testi
 ```

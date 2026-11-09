@@ -442,11 +442,12 @@ function seedDemo() {
     ids[a.role] = u ? u.id : Number(db.prepare('INSERT INTO users (name, phone, password, role) VALUES (?, ?, ?, ?)')
       .run(a.name, a.phone, hashPassword(DEMO_PASSWORD), a.role).lastInsertRowid);
   }
-  // Mahsulot va buyurtmalar faqat bir marta qo'shiladi
+  // Mahsulotlar hali yo'q bo'lsagina namunaviy ma'lumot qo'shiladi
+  if (db.prepare('SELECT COUNT(*) n FROM products').get().n) return;
   const malika = db.prepare('SELECT id FROM users WHERE phone = ?').get('+998904444444');
-  if (malika) return;
-  const malikaId = Number(db.prepare("INSERT INTO users (name, phone, password, role) VALUES ('Malika Shop', '+998904444444', ?, 'seller')")
+  const malikaId = malika ? malika.id : Number(db.prepare("INSERT INTO users (name, phone, password, role) VALUES ('Malika Shop', '+998904444444', ?, 'seller')")
     .run(hashPassword(DEMO_PASSWORD)).lastInsertRowid);
+  db.prepare("UPDATE users SET role = 'seller' WHERE id IN (?, ?)").run(ids.seller, malikaId);
   const add = (seller, name, description, price, stock) => Number(db.prepare(
     'INSERT INTO products (seller_id, name, description, price, stock) VALUES (?, ?, ?, ?, ?)').run(seller, name, description, price, stock).lastInsertRowid);
   const p = {
